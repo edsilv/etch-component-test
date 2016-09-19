@@ -7,7 +7,7 @@ namespace MyComponents {
 
         constructor(options: IEtchComponentOptions) {
             super(options);
-            
+
             this._init();
             this._resize();
         }
@@ -22,24 +22,28 @@ namespace MyComponents {
             if (!success){
                 console.error("Component failed to initialise");
             }
-            
+
             this.canvas = new Canvas();
-            this.canvas.style.backgroundColor = '#FFF';
-            this.canvas.width = 150;
-            this.canvas.height = 150;
+            this.canvas.style.backgroundColor = '#333';
+            this.canvas.width = 750;
+            this.canvas.height = 750;
             this.main = new Main();
             this.main.init(this.canvas);
 
+            this.main.shapeCompleted.on((s, svg) => {
+                this._emit(EtchComponent.Events.SHAPECOMPLETED, [svg]);
+            }, this);
+
             return success;
         }
-        
+
         protected _getDefaultOptions(): IEtchComponentOptions {
             return <IEtchComponentOptions>{
             }
         }
-        
+
         protected _resize(): void {
-            
+
         }
     }
 }
@@ -47,6 +51,7 @@ namespace MyComponents {
 namespace MyComponents.EtchComponent {
     export class Events {
         static TEST: string = 'test';
+        static SHAPECOMPLETED: string = 'shapeCompleted';
     }
 }
 

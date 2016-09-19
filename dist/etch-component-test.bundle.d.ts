@@ -1,4 +1,4 @@
-// base-component v1.0.1 https://github.com/viewdir/base-component#readme
+// base-component v1.0.2 https://github.com/viewdir/base-component#readme
 interface Window {
     _Components: any;
 }
@@ -13,7 +13,7 @@ declare namespace _Components {
         protected _getDefaultOptions(): IBaseComponentOptions;
         protected _emit(event: string, ...args: any[]): void;
         protected _resize(): void;
-        databind(data: any): void;
+        databind(data?: any): void;
     }
     function applyMixins(derivedCtor: any, baseCtors: any[]): void;
 }
@@ -21,7 +21,7 @@ declare namespace _Components {
 declare namespace _Components {
     interface IBaseComponent {
         options: IBaseComponentOptions;
-        databind(data: any): void;
+        databind(data?: any): void;
     }
 }
 
@@ -1065,6 +1065,7 @@ declare namespace MyComponents {
 declare namespace MyComponents.EtchComponent {
     class Events {
         static TEST: string;
+        static SHAPECOMPLETED: string;
     }
 }
 
@@ -1075,8 +1076,17 @@ declare namespace MyComponents {
 
 declare namespace MyComponents {
     class Main extends etch.drawing.Stage {
+        shapes: any[];
+        shape: any;
+        rectangle: any;
+        currentPos: any;
+        drawmode: boolean;
+        shapeCompleted: nullstone.Event<string>;
         constructor(maxDelta?: number);
         setup(): void;
+        drawRect(r: any): void;
+        toggleDrawMode(): void;
+        update(): void;
         draw(): void;
     }
 }

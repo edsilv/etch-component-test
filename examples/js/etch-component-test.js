@@ -18,16 +18,20 @@ var MyComponents;
             this._emit(EtchComponent.Events.TEST, [1, 2, 'three']);
         };
         EtchComponent.prototype._init = function () {
+            var _this = this;
             var success = _super.prototype._init.call(this);
             if (!success) {
                 console.error("Component failed to initialise");
             }
             this.canvas = new Canvas();
-            this.canvas.style.backgroundColor = '#FFF';
-            this.canvas.width = 150;
-            this.canvas.height = 150;
+            this.canvas.style.backgroundColor = '#333';
+            this.canvas.width = 750;
+            this.canvas.height = 750;
             this.main = new MyComponents.Main();
             this.main.init(this.canvas);
+            this.main.shapeCompleted.on(function (s, svg) {
+                _this._emit(EtchComponent.Events.SHAPECOMPLETED, [svg]);
+            }, this);
             return success;
         };
         EtchComponent.prototype._getDefaultOptions = function () {
@@ -47,6 +51,7 @@ var MyComponents;
             function Events() {
             }
             Events.TEST = 'test';
+            Events.SHAPECOMPLETED = 'shapeCompleted';
             return Events;
         }());
         EtchComponent.Events = Events;
@@ -70,17 +75,58 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var MyComponents;
 (function (MyComponents) {
+    // declare var shapes = [];
     var Main = (function (_super) {
         __extends(Main, _super);
         function Main(maxDelta) {
             _super.call(this, maxDelta);
+            this.drawmode = false;
+            this.shapeCompleted = new nullstone.Event(); // svg of completed shape
         }
         Main.prototype.setup = function () {
+            var _this = this;
             _super.prototype.setup.call(this);
+            this.shapes = [];
+            this.currentPos = { x: 0, y: 0 };
+            this.position = null;
+            this.stage.mousePos.x = 0;
+            this.stage.mousePos.y = 0;
+            this.canvas.htmlElement.addEventListener('mousedown', function (e) {
+                _this.mousePos = _this.stage.mousePos.clone();
+                console.log('mouseX: ', _this.mousePos.x, ' mouseY: ', _this.mousePos.y);
+                _this.toggleDrawMode();
+                if (_this.drawmode) {
+                    // set the anchor point on first click
+                    _this.currentPos.x = _this.mousePos.x;
+                    _this.currentPos.y = _this.mousePos.y;
+                }
+                else {
+                    // finish the shape on second click and store it.
+                    _this.rectangle = { x: _this.currentPos.x, y: _this.currentPos.y, w: _this.mousePos.x - _this.currentPos.x, h: _this.mousePos.y - _this.currentPos.y };
+                    _this.drawRect(_this.rectangle);
+                }
+            }, false);
+        };
+        Main.prototype.drawRect = function (r) {
+            this.shapes.push(r);
+            this.shapeCompleted.raise(this, "rectangle complete"); // publish event
+        };
+        Main.prototype.toggleDrawMode = function () {
+            this.drawmode = !this.drawmode;
+        };
+        Main.prototype.update = function () {
+            // redraw the shape in each frame as the mouse moves
+            this.rectangle = { x: this.currentPos.x, y: this.currentPos.y, w: this.mousePos.x - this.currentPos.x, h: this.mousePos.y - this.currentPos.y };
         };
         Main.prototype.draw = function () {
-            this.ctx.fillStyle = "#FF0000";
-            this.ctx.fillRect(0, 0, 150, 150);
+            this.ctx.strokeStyle = "#FF0000";
+            for (var i = 0; i < this.shapes.length; i++) {
+                var myShape = this.shapes[i];
+                this.ctx.strokeRect(myShape.x, myShape.y, myShape.w, myShape.h);
+            }
+            if (this.drawmode) {
+                this.ctx.strokeRect(this.rectangle.x, this.rectangle.y, this.rectangle.w, this.rectangle.h);
+            }
         };
         return Main;
     }(etch.drawing.Stage));
